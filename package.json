@@ -4,13 +4,16 @@
   "description": "This is a dummy API for the PalPay project",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node ./dist/index.js",
-    "serve": "nodemon --exec npm start",
-    "build": "tsc"
+    "start": "cross-env NODE_ENV=production node ./dist/index.js",
+    "serve": "cross-env NODE_ENV=development nodemon --exec npm run ts-node ./src/index.ts",
+    "build": "tsc",
+    "ts-node": "ts-node"
   },
   "author": "Adam Mézes",
   "license": "ISC",
   "dependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "mysql": "^2.18.1"
   },
