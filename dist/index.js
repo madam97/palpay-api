@@ -9,6 +9,6 @@ const express_1 = __importDefault(require("express"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 1111;
 app.get('/', (req, res) => {
-    res.json({ msg: 'Working', port: process.env.PORT });
+    res.json({ msg: 'Working', envpath: `.env.${process.env.NODE_ENV}`, test: process.env.TEST_AAAAAAA, port: process.env.PORT });
 });
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
