@@ -1,5 +1,13 @@
 # PalPay API
 
+## Testing
+
+| User login            | Bank account number        |
+| --------------------- | -------------------------- |
+| sergio / testsergio   | 38127351-43287452-98643132 |
+| renee / testrenee     | 87943463-32137645-32132148 |
+| lauren / testlauren   | 76321313-43853213-32183652 |
+
 ## API endpoints
 
 | method  | path                                | description |
@@ -22,7 +30,7 @@ users
 -----
 id PK int
 user_info_id FK - user_info.id
-account_id FK - bank_accounts.id
+bank_account_id FK - bank_accounts.id
 username UNIQUE varchar(255)
 password varchar(255)
 
@@ -42,15 +50,15 @@ balance int=0
 
 user_partners
 -----
-user_id FK - users.id
-user_id2 FK - users.id
+user1_id FK - users.id
+user2_id FK - users.id
 
 
 payments
 -----
 id PK int
-from_account_id FK - bank_accounts.id
-to_account_id FK - bank_accounts.id
+from_bank_account_id FK - bank_accounts.id
+to_bank_account_id FK - bank_accounts.id
 amount int
 notice varchar(255)
 created_at datetime default=NOW()
