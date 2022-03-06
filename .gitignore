@@ -1,3 +1,7 @@
 # dependencies
 /node_modules
 /sql
+
+# misc
+.env.development
+.env.production
