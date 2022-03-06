@@ -3,5 +3,6 @@
 /sql
 
 # misc
+/not_needed
 .env.development
 .env.production
