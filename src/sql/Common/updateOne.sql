@@ -1,0 +1,3 @@
+UPDATE `{PREFIX}{TABLE}` 
+SET ?
+WHERE id = ?;

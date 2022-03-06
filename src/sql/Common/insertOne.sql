@@ -1,0 +1,1 @@
+INSERT INTO `{PREFIX}{TABLE}` (?) VALUES (?);

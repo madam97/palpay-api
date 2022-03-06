@@ -1,0 +1,2 @@
+DELETE FROM `{PREFIX}{TABLE}` 
+WHERE id = ?;
