@@ -21,11 +21,14 @@ const db = new Database(
 const app = express();
 
 app.get('/', (req,res) => {
-  db.exec('BankAccount/selectOne', [1], (result) => {
-    console.log(result);
+  const bankAccount = {
+    accountNumber: 'xxx'
+  };
 
+  db.exec('BankAccount/updateOne', [bankAccount, 1], (result) => {
     res.json({ 
       status: 'ok',
+      result,
       msg: 'Working', 
       test: process.env.TEST_AAAAAAA, 
       port: process.env.PORT 
