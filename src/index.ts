@@ -21,7 +21,7 @@ const db = new Database(
 const app = express();
 
 app.get('/', (req,res) => {
-  db.exec('User/selectOne', [1], (result) => {
+  db.exec('BankAccount/selectOne', [1], (result) => {
     console.log(result);
 
     res.json({ 

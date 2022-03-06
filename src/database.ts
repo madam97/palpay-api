@@ -1,6 +1,7 @@
 import mysql from 'mysql';
 import fs from 'fs';
 import path from 'path';
+import pluralize from 'pluralize';
 
 type QueryCallback = (result: object) => void;
 
@@ -28,16 +29,46 @@ export default class Database {
   }
 
   public exec(action: string, values: any, callback: QueryCallback): void {
-    fs.readFile(path.join(__dirname, 'sql', action+'.sql'), 'utf8', (err, rawSql) => {
-      if (err) throw err;
+    const entitySqlFile = path.join(__dirname, 'sql', action+'.sql');
+    const commonSqlFile = path.join(__dirname, 'sql', 'Common', action.replace(/^.*?\//, '')+'.sql');
 
-      const sql = rawSql.replace('TPX_', this.tablePrefix);
-
-      this.db.query(sql, values, (err, res) => {
+    // Entity SQL file
+    if (fs.existsSync(entitySqlFile)) {
+      fs.readFile(entitySqlFile, 'utf8', (err, rawSql) => {
         if (err) throw err;
-
-        callback(JSON.parse(JSON.stringify(res)) );
+  
+        const sql = rawSql.replace('{PREFIX}', this.tablePrefix);
+  
+        this.db.query(sql, values, (err, res) => {
+          if (err) throw err;
+  
+          callback( JSON.parse(JSON.stringify(res)) );
+        });
       });
-    });
+    }
+
+    // Common SQL file
+    else if (fs.existsSync(commonSqlFile)) {
+      // Get the database table name from the action, PascalCase -> camel_case
+      const entity = action.replace(/\/.*$/, '');
+      const table = pluralize( entity.split(/(?=[A-Z])/).join('_').toLowerCase() );
+
+      fs.readFile(commonSqlFile, 'utf8', (err, rawSql) => {
+        if (err) throw err;
+  
+        const sql = rawSql.replace('{PREFIX}', this.tablePrefix).replace('{TABLE}', table);
+  
+        this.db.query(sql, values, (err, res) => {
+          if (err) throw err;
+  
+          callback( JSON.parse(JSON.stringify(res)) );
+        });
+      });
+    }
+    
+    // Error: no SQL files
+    else {
+      throw new Error(`Database error: there is no entity or common SQL file for ${action} action`);
+    }
   }
 }
