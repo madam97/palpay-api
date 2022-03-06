@@ -1,13 +1,34 @@
 import dotenv from 'dotenv';
+import express from 'express';
+import dbConnect from './db';
+
+// Variables
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
-import express from 'express';
-
-const app = express();
-const PORT = process.env.PORT || 1111;
-
-app.get('/', (req,res) => {
-  res.json({ msg: 'Working', envpath: `.env.${process.env.NODE_ENV}`, test: process.env.TEST_AAAAAAA, port: process.env.PORT });
+// Database
+const db = dbConnect({
+  host      : process.env.DB_HOST,
+  port      : process.env.DB_PORT ? parseInt(process.env.DB_PORT) : undefined,
+  user      : process.env.DB_USER,
+  password  : process.env.DB_PASSWORD,
+  database  : process.env.DB_DATABASE
 });
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+// API
+const app = express();
+
+app.get('/', (req,res) => {
+  const sql = 'SELECT * FROM palpay__users';
+  db.query(sql, (err, result) => {
+    if (err) throw err;
+
+    res.json({ 
+      sql: result,
+      msg: 'Working', 
+      test: process.env.TEST_AAAAAAA, 
+      port: process.env.PORT 
+    });
+  });
+});
+
+app.listen(process.env.PORT, () => console.log(`Server started on port ${process.env.PORT}`));
