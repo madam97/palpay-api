@@ -35,18 +35,7 @@ export default class Database {
     const entitySqlFile = path.join(__dirname, 'sql', action+'.sql');
     const commonSqlFile = path.join(__dirname, 'sql', 'Common', fileName+'.sql');
 
-    // Format values
-    if (Array.isArray(values)) {
-      values.forEach((value, index) => {
-        if (!Array.isArray(value) && typeof value === 'object') {
-          values[index] = toSnakeCaseObject(value);
-        }
-      });
-    } else if (typeof values === 'object') {
-      values = toSnakeCaseObject(values);
-    }
-
-    console.log('Values: ', values);
+    values = this.formatExecValues(values);
 
     // Entity SQL file
     if (fs.existsSync(entitySqlFile)) {
@@ -58,25 +47,13 @@ export default class Database {
         this.db.query(sql, values, (err, result) => {
           if (err) throw err;
 
-          result = JSON.parse(JSON.stringify(result));
-
-          if (Array.isArray(result)) {
-            const res: object[] = [];
-            result.map((row: object) => {
-              res.push( toCamelCaseObject(row) );
-            });
-
-            callback(res);
-          } else {
-            callback( toCamelCaseObject(result) );
-          }
+          this.execRunCallback(result, callback);
         });
       });
     }
 
     // Common SQL file
     else if (fs.existsSync(commonSqlFile)) {
-      // Get the database table name from the action
       const table = pluralize( toSnakeCase(entity) );
 
       fs.readFile(commonSqlFile, 'utf8', (err, rawSql) => {
@@ -87,18 +64,7 @@ export default class Database {
         this.db.query(sql, values, (err, result) => {
           if (err) throw err;
 
-          result = JSON.parse(JSON.stringify(result));
-
-          if (Array.isArray(result)) {
-            const res: object[] = [];
-            result.map((row: object) => {
-              res.push( toCamelCaseObject(row) );
-            });
-
-            callback(res);
-          } else {
-            callback( toCamelCaseObject(result) );
-          }
+          this.execRunCallback(result, callback);
         });
       });
     }
@@ -106,6 +72,35 @@ export default class Database {
     // Error: no SQL files
     else {
       throw new Error(`Database error: there is no entity or common SQL file for ${action} action`);
+    }
+  }
+
+  private formatExecValues(values: any): any {
+    if (Array.isArray(values)) {
+      values.forEach((value, index) => {
+        if (!Array.isArray(value) && typeof value === 'object') {
+          values[index] = toSnakeCaseObject(value);
+        }
+      });
+    } else if (typeof values === 'object') {
+      values = toSnakeCaseObject(values);
+    }
+
+    return values;
+  }
+
+  private execRunCallback(result: any, callback: QueryCallback): void {
+    result = JSON.parse(JSON.stringify(result));
+
+    if (Array.isArray(result)) {
+      const res: object[] = [];
+      result.map((row: object) => {
+        res.push( toCamelCaseObject(row) );
+      });
+
+      callback(res);
+    } else {
+      callback(result);
     }
   }
 }

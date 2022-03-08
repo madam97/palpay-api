@@ -22,10 +22,10 @@ const app = express();
 
 app.get('/', (req,res) => {
   const bankAccount = {
-    accountNumber: 'xxx'
+    accountNumber: '38127351-43287452-98643132'
   };
 
-  db.exec('BankAccount/updateOne', [bankAccount, 1], (result) => {
+  db.exec('BankAccount/updateOne', [bankAccount,1], (result) => {
     res.json({ 
       status: 'ok',
       result,
