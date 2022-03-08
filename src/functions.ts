@@ -23,8 +23,6 @@ const helperCaseObject = (data: object, caseFunc: Function): object => {
   const newData: any[][] = [];
 
   Object.entries(data).forEach(([key, value]) => {
-    console.log(key, '->', caseFunc(key.toString()), caseFunc);
-
     newData.push([ caseFunc(key.toString()), value ]);
   });
 
