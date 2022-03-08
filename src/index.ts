@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
-import Database from './database';
+import Database from './Database';
 
 // Variables
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
