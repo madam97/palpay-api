@@ -12,4 +12,8 @@ export default class BankAccountEntity extends Entity {
     this.accountNumber = accountNumber;
     this.balance = balance;
   }
+
+  public toArray(): any[] {
+    return [this.id, this.accountNumber, this.balance];
+  }
 }
