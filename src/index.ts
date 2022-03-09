@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import Database from './Database';
-import BankAccountEntity from './entities/BankAccountEntity';
-import BankAccountRepository from './repositories/BankAccountRepository';
+import bankAccountController from './controllers/BankAccountController';
 
 // Variables
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -18,12 +17,21 @@ async function main(): Promise<void> {
     database  : process.env.DB_DATABASE
   });
 
-  // API
+  // ---------------------------------
+  // -------------- API --------------
+  // ---------------------------------
+
   const app = express();
+
+  // Init middleware
+  app.use(express.json());
+
+  // Endpoints
+  app.use('/bank-account', bankAccountController(db));
 
   app.get('/', async (req,res) => {
 
-    const repo = new BankAccountRepository(db);
+    // const repo = new BankAccountRepository(db);
 
     // const bankAccount = await repo.find(1);
     // const bankAccount = await repo.findOne(1);
