@@ -1,7 +1,8 @@
 import express from 'express';
+import Entity from '../entities/Entity';
 import Repository from '../repositories/Repository';
 
-export default function controller<T>(repo: Repository<T>): express.Router {
+export default function controller<T extends Entity>(repo: Repository<T>): express.Router {
   const router = express.Router();
 
   // GET /entity/
@@ -9,7 +10,7 @@ export default function controller<T>(repo: Repository<T>): express.Router {
     try {
       const entities = await repo.find();
 
-      res.json(entities);
+      res.json( repo.getEntitiesData(entities) );
     } catch (err) {
       res.status(400).json({
         msg: 'Not able to ask down list of entities',
@@ -24,7 +25,7 @@ export default function controller<T>(repo: Repository<T>): express.Router {
       const id = parseInt(req.params.id);
       const entity = await repo.findOne(id);
 
-      res.json(entity);
+      res.json( entity.toObject() );
     } catch (err) {
       res.status(400).json({
         msg: 'Not able to ask down the entity',
@@ -38,7 +39,11 @@ export default function controller<T>(repo: Repository<T>): express.Router {
     try {
       const entity = repo.getEntity(req.body);
 
-      res.json( await repo.create(entity) );
+      entity.validate(true, false);
+      
+      const newEntity = await repo.create(entity);
+
+      res.json( newEntity.toObject() );
     } catch (err) {
       res.status(400).json({
         msg: 'Not able to create new entity',
@@ -56,9 +61,11 @@ export default function controller<T>(repo: Repository<T>): express.Router {
         id
       });
 
-      await repo.update(entity)
+      entity.validate();
 
-      res.json(entity);
+      await repo.update(entity);
+
+      res.json( entity.toObject() );
     } catch (err) {
       res.status(400).json({
         msg: 'Not able to update all data of the entity',
@@ -78,9 +85,11 @@ export default function controller<T>(repo: Repository<T>): express.Router {
         ...req.body
       });
 
+      entity.validate();
+
       await repo.update(newEntity);
 
-      res.json(newEntity);
+      res.json( newEntity.toObject() );
     } catch (err) {
       res.status(400).json({
         msg: 'Not able to ask update the entity',
