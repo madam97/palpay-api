@@ -9,6 +9,8 @@ export default abstract class Repository<T> {
 
   public abstract getEntity(data: object): T;
 
+  public abstract getEntitiesData(entities: T[]): object[];
+
   public abstract find(): Promise<T[]>;
 
   public abstract findOne(id: number): Promise<T>;

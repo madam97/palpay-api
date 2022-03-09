@@ -11,6 +11,12 @@ export default class BankAccountRepository extends Repository<BankAccountEntity>
     return new BankAccountEntity(data);
   }
 
+  public getEntitiesData(entities: BankAccountEntity[]): object[] {
+    const data: object[] = [];
+    entities.map(entity => data.push( entity.toObject() ));
+    return data;
+  }
+
   public async find(): Promise<BankAccountEntity[]> {
     const entities: BankAccountEntity[] = [];
 
@@ -26,7 +32,7 @@ export default class BankAccountRepository extends Repository<BankAccountEntity>
   }
 
   public async create(entity: BankAccountEntity): Promise<BankAccountEntity> {
-    entity.id = await this.db.insert('BankAccount/insertOne', entity.toArrayNoId());
+    entity.id = await this.db.insert('BankAccount/insertOne', entity.toArray(true));
 
     return entity;
   }
