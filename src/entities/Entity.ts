@@ -1,11 +1,5 @@
-export default class Entity {
-  private entityName: string;
-
-  constructor() {
-    this.entityName = new.target.name.replace(/Entity$/i, '');
-  }
-
-  public getEntityName(): string {
-    return this.entityName;  
-  }
+export default abstract class Entity {
+  public abstract toArray(): any[];
+  
+  public abstract toArrayNoId(): any[];
 }
