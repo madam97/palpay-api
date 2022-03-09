@@ -22,9 +22,9 @@ export function toPascalCase(text: string): string {
 const helperCaseObject = (data: object, caseFunc: Function): object => {
   const newData: any[][] = [];
 
-  Object.entries(data).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(data)) {
     newData.push([ caseFunc(key.toString()), value ]);
-  });
+  }
 
   return Object.fromEntries(newData);
 }
