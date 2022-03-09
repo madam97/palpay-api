@@ -1,106 +1,140 @@
-import mysql from 'mysql';
+import mysql from 'mysql2/promise';
 import fs from 'fs';
 import path from 'path';
 import pluralize from 'pluralize';
-import { toSnakeCase, toCamelCaseObject, toSnakeCaseObject } from './functions'; 
-
-type QueryCallback = (result: object) => void;
+import { toSnakeCase, toCamelCaseObject } from './functions';
+import IObject from './interfaces/IObject';
 
 export default class Database {
   private db: mysql.Connection;
   private tablePrefix: string;
 
-  constructor(config: mysql.ConnectionConfig, tablePrefix?: string) {
-    this.db = mysql.createConnection(config);
+  constructor(tablePrefix?: string) {
     this.tablePrefix = tablePrefix ? tablePrefix : '';
+  }
 
-    this.db.connect((err) => {
-      if (err) throw err;
-  
-      console.log('MySQL connected...');
+  public async connect(config: any) {
+    this.db = await mysql.createConnection(config);
+
+    console.log('MySQL connected...');
+  }
+
+  public escape(value: any): string {
+    return mysql.escape(value);
+  }
+
+  public async select(action: string, values: any[] = []): Promise<object[]> {
+    this.validateAction(action, 'select');
+
+    const result = await this.exec(action, values);
+
+    if (!Array.isArray(result)) {
+      throw Error(`Database error: ${action} query result is not an array`);
+    }
+
+    const res: object[] = [];
+    result.map((row: object) => {
+      res.push( toCamelCaseObject(row) );
     });
+
+    return res;
   }
 
-  public escape(value: any, stringifyObjects?: boolean | undefined, timeZone?: string | undefined): string {
-    return mysql.escape(value, stringifyObjects, timeZone);
+  public async selectOne(action: string, values: any): Promise<object> {
+    this.validateAction(action, 'select');
+
+    const result = await this.exec(action, !Array.isArray(values) ? [values] : values);
+
+    if (!Array.isArray(result)) {
+      throw Error(`Database error: ${action} query result is not an array`);
+    } else if (result.length !== 1) {
+      throw Error(`Database error: ${action} query result size is not 1`);
+    }
+
+    return toCamelCaseObject(result[0]);
   }
 
-  public query(action: string, callback: QueryCallback): void {
-    this.exec(action, [], callback);
+  public async insert(action: string, values: any[]): Promise<number> {
+    this.validateAction(action, 'insert');
+
+    const result: IObject = await this.exec(action, values);
+
+    if (!result.insertId) {
+      throw Error(`Database error: ${action} query was not successful`);
+    }
+
+    return result.insertId;
   }
 
-  public exec(action: string, values: any, callback: QueryCallback): void {
+  public async update(action: string, values: any[]): Promise<boolean> {
+    this.validateAction(action, 'update');
+    
+    const result: IObject = await this.exec(action, values);
+
+    if (!result.affectedRows) {
+      throw Error(`Database error: ${action} query was not successful`);
+    }
+
+    return typeof result.changedRows === 'number' && 0 < result.changedRows;
+  }
+
+  public async delete(action: string, values: any): Promise<boolean> {
+    this.validateAction(action, 'delete');
+
+    const result: IObject = await this.exec(action, !Array.isArray(values) ? [values] : values);
+
+    if (!result.affectedRows) {
+      throw Error(`Database error: ${action} query was not successful`);
+    }
+
+    return true;
+  }
+
+  private async exec(action: string, values: any[]): Promise<object | object[] | IObject> {
     const entity = action.replace(/\/.*$/, '');
     const fileName = action.replace(/^.*?\//, '');
+
     const entitySqlFile = path.join(__dirname, 'sql', action+'.sql');
     const commonSqlFile = path.join(__dirname, 'sql', 'Common', fileName+'.sql');
+    const useEntityFile = fs.existsSync(entitySqlFile);
 
-    values = this.formatExecValues(values);
-
-    // Entity SQL file
-    if (fs.existsSync(entitySqlFile)) {
-      fs.readFile(entitySqlFile, 'utf8', (err, rawSql) => {
-        if (err) throw err;
-  
-        const sql = rawSql.replace('{PREFIX}', this.tablePrefix);
-  
-        this.db.query(sql, values, (err, result) => {
-          if (err) throw err;
-
-          this.execRunCallback(result, callback);
-        });
-      });
-    }
-
-    // Common SQL file
-    else if (fs.existsSync(commonSqlFile)) {
-      const table = pluralize( toSnakeCase(entity) );
-
-      fs.readFile(commonSqlFile, 'utf8', (err, rawSql) => {
-        if (err) throw err;
-  
-        const sql = rawSql.replace('{PREFIX}', this.tablePrefix).replace('{TABLE}', table);
-  
-        this.db.query(sql, values, (err, result) => {
-          if (err) throw err;
-
-          this.execRunCallback(result, callback);
-        });
-      });
-    }
-    
-    // Error: no SQL files
-    else {
+    if (!useEntityFile && !fs.existsSync(commonSqlFile)) {
       throw new Error(`Database error: there is no entity or common SQL file for ${action} action`);
     }
-  }
 
-  private formatExecValues(values: any): any {
-    if (Array.isArray(values)) {
-      values.forEach((value, index) => {
-        if (!Array.isArray(value) && typeof value === 'object') {
-          values[index] = toSnakeCaseObject(value);
-        }
-      });
-    } else if (typeof values === 'object') {
-      values = toSnakeCaseObject(values);
+    // values = this.formatExecValues(values);
+
+    const rawSql = fs.readFileSync(useEntityFile ? entitySqlFile : commonSqlFile, 'utf8');
+    let sql = rawSql.replace('{PREFIX}', this.tablePrefix);
+    if (!useEntityFile) {
+      const table = pluralize( toSnakeCase(entity) );
+      sql = sql.replace('{TABLE}', table);
     }
 
-    return values;
+    const [result] = await this.db.execute(sql, values);
+
+    return /^(insert|update|delete)/i.test(fileName) ? result as IObject : result;
   }
 
-  private execRunCallback(result: any, callback: QueryCallback): void {
-    result = JSON.parse(JSON.stringify(result));
+  private validateAction(action: string, neededActionType: string): void {
+    const regex = new RegExp('/'+neededActionType, 'i');
 
-    if (Array.isArray(result)) {
-      const res: object[] = [];
-      result.map((row: object) => {
-        res.push( toCamelCaseObject(row) );
-      });
-
-      callback(res);
-    } else {
-      callback(result);
+    if (!regex.test(action)) {
+      throw new Error(`Database error: ${action} query's type is not ${neededActionType}`);
     }
   }
+
+  // private formatExecValues(values: any): any {
+  //   if (Array.isArray(values)) {
+  //     values.forEach((value, index) => {
+  //       if (!Array.isArray(value) && typeof value === 'object') {
+  //         values[index] = toSnakeCaseObject(value);
+  //       }
+  //     });
+  //   } else if (typeof values === 'object') {
+  //     values = toSnakeCaseObject(values);
+  //   }
+
+  //   return values;
+  // }
 }

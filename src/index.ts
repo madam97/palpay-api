@@ -1,39 +1,36 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import Database from './Database';
+import BankAccountEntity from './entities/BankAccountEntity';
+import BankAccountRepository from './repositories/BankAccountRepository';
 
 // Variables
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
-// Database
-const db = new Database(
-  {
+async function main(): Promise<void> {
+  // Database
+  const db = new Database(process.env.DB_TABLE_PREFIX);
+  await db.connect({
     host      : process.env.DB_HOST,
     port      : process.env.DB_PORT ? parseInt(process.env.DB_PORT) : undefined,
     user      : process.env.DB_USER,
     password  : process.env.DB_PASSWORD,
     database  : process.env.DB_DATABASE
-  },
-  process.env.DB_TABLE_PREFIX
-);
+  });
 
-// API
-const app = express();
+  // API
+  const app = express();
 
-app.get('/', (req,res) => {
-  const bankAccount = {
-    accountNumber: '38127351-43287452-98643132'
-  };
-
-  db.exec('BankAccount/updateOne', [bankAccount,1], (result) => {
+  app.get('/', async (req,res) => {
     res.json({ 
       status: 'ok',
-      result,
       msg: 'Working', 
       test: process.env.TEST_AAAAAAA, 
       port: process.env.PORT 
     });
   });
-});
 
-app.listen(process.env.PORT, () => console.log(`Server started on port ${process.env.PORT}`));
+  app.listen(process.env.PORT, () => console.log(`Server started on port ${process.env.PORT}`));
+}
+
+main();
