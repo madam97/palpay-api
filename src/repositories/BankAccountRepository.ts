@@ -1,50 +1,37 @@
 import Database from '../Database';
+import Repository from './Repository';
 import BankAccountEntity from '../entities/BankAccountEntity';
 
-export default class BankAccountRepository {
-  db: Database;
-
+export default class BankAccountRepository extends Repository<BankAccountEntity> {
   constructor(db: Database) {
-    this.db = db;
+    super(db);
   }
 
-  public find() {
+  public async find(): Promise<BankAccountEntity[]> {
+    const entities: BankAccountEntity[] = [];
 
+    const result = await this.db.select('BankAccount/selectAll');
+    result.map(row => entities.push( new BankAccountEntity(row) ));
+
+    return entities;
   }
 
-  // public findOne(id: number): object {
-  //   let entity: object;
-
-  //   this.db.exec('BankAccount/selectOne', [id], (result) => {
-  //     entity = result;
-  //   });
-
-  //   return entity;
-  // }
-
-  public create(entity: BankAccountEntity): boolean {
-    let done = false;
-
-    this.db.exec('BankAccount/insertOne', entity.toArray(), (result) => {
-      console.log(result);
-      done = true;
-    });
-
-    return done;
+  public async findOne(id: number): Promise<BankAccountEntity> {
+    const result = await this.db.selectOne('BankAccount/selectOne', id);
+    return new BankAccountEntity(result);
   }
 
-  public update(id: string, entity: BankAccountEntity): boolean {
-    return true;
+  public async create(entity: BankAccountEntity): Promise<BankAccountEntity> {
+    entity.id = await this.db.insert('BankAccount/insertOne', entity.toArrayNoId());
+
+    return entity;
   }
 
-  public delete(id: number): boolean {
-    let done = false;
+  public async update(entity: BankAccountEntity): Promise<boolean> {
+    return await this.db.update('BankAccount/updateOne', entity.toArray());
+  }
 
-    this.db.exec('BankAccount/deleteOne', [id], (result) => {
-      console.log(result);
-      done = true;
-    });
-
-    return done;
+  public async delete(id: number): Promise<boolean> {
+    return await this.db.delete('BankAccount/deleteOne', id);
   }
 }
