@@ -1,5 +1,6 @@
 import Entity from './Entity';
 import IObject from '../interfaces/IObject';
+import { toCamelCaseObject } from '../functions';
 
 export default class BankAccountEntity extends Entity {
   id: number | null;
@@ -8,6 +9,8 @@ export default class BankAccountEntity extends Entity {
 
   constructor(data: IObject) {
     super();
+
+    data = toCamelCaseObject(data);
 
     this.id = data.id ?? null;
     this.accountNumber = data.accountNumber ?? '';
