@@ -22,6 +22,27 @@ async function main(): Promise<void> {
   const app = express();
 
   app.get('/', async (req,res) => {
+
+    const repo = new BankAccountRepository(db);
+
+    // const bankAccount = await repo.find(1);
+    // const bankAccount = await repo.findOne(1);
+
+    // let bankAccount = new BankAccountEntity({
+    //   accountNumber: "43242343-43242134-98643134",
+    //   balance: 10000
+    // });
+    // bankAccount = await repo.create(bankAccount);
+
+    // const bankAccount = new BankAccountEntity({
+    //   id: 100,
+    //   accountNumber: "xxxxxxxx-43242134-98643134",
+    //   balance: 5000
+    // });
+    // const updated = await repo.update(bankAccount);
+
+    // const deleted = await repo.delete(7);
+
     res.json({ 
       status: 'ok',
       msg: 'Working', 
