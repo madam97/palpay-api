@@ -7,6 +7,8 @@ export default abstract class Repository<T> {
     this.db = db;
   }
 
+  public abstract getEntity(data: object): T;
+
   public abstract find(): Promise<T[]>;
 
   public abstract findOne(id: number): Promise<T>;

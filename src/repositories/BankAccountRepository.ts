@@ -7,18 +7,22 @@ export default class BankAccountRepository extends Repository<BankAccountEntity>
     super(db);
   }
 
+  public getEntity(data: object): BankAccountEntity {
+    return new BankAccountEntity(data);
+  }
+
   public async find(): Promise<BankAccountEntity[]> {
     const entities: BankAccountEntity[] = [];
 
     const result = await this.db.select('BankAccount/selectAll');
-    result.map(row => entities.push( new BankAccountEntity(row) ));
+    result.map(row => entities.push( this.getEntity(row) ));
 
     return entities;
   }
 
   public async findOne(id: number): Promise<BankAccountEntity> {
     const result = await this.db.selectOne('BankAccount/selectOne', id);
-    return new BankAccountEntity(result);
+    return this.getEntity(result);
   }
 
   public async create(entity: BankAccountEntity): Promise<BankAccountEntity> {
