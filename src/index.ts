@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import Database from './Database';
+import userController from './controllers/UserController';
+import userInfoController from './controllers/UserInfoController';
 import bankAccountController from './controllers/BankAccountController';
+import paymentController from './controllers/PaymentController';
 
 // Variables
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -27,7 +30,10 @@ async function main(): Promise<void> {
   app.use(express.json());
 
   // Endpoints
-  app.use('/bank-account', bankAccountController(db));
+  app.use('/users', userController(db));
+  app.use('/user-info', userInfoController(db));
+  app.use('/bank-accounts', bankAccountController(db));
+  app.use('/payments', paymentController(db));
 
   app.get('/', async (req,res) => {
 
