@@ -13,7 +13,7 @@ export default class Auth {
     return jwt.sign(payload, this.SECRET, this.config);
   }
 
-  public verifyToken(authHeader: string): object {
+  public verifyToken(authHeader: string): string | jwt.JwtPayload {
     const token = authHeader.split(' ')[1];
 
     if (!token) {
