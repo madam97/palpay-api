@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import Database from './Database';
-import userController from './controllers/UserController';
-import userInfoController from './controllers/UserInfoController';
-import bankAccountController from './controllers/BankAccountController';
-import paymentController from './controllers/PaymentController';
+import UserController from './controllers/UserController';
+import UserInfoController from './controllers/UserInfoController';
+import BankAccountController from './controllers/BankAccountController';
+import PaymentController from './controllers/PaymentController';
 
 // Variables
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -30,40 +30,15 @@ async function main(): Promise<void> {
   app.use(express.json());
 
   // Endpoints
-  app.use('/users', userController(db));
-  app.use('/user-info', userInfoController(db));
-  app.use('/bank-accounts', bankAccountController(db));
-  app.use('/payments', paymentController(db));
+  const userController = new UserController(db);
+  const userInfoController = new UserInfoController(db);
+  const bankAccountController = new BankAccountController(db);
+  const paymentController = new PaymentController(db);
 
-  app.get('/', async (req,res) => {
-
-    // const repo = new BankAccountRepository(db);
-
-    // const bankAccount = await repo.find(1);
-    // const bankAccount = await repo.findOne(1);
-
-    // let bankAccount = new BankAccountEntity({
-    //   accountNumber: "43242343-43242134-98643134",
-    //   balance: 10000
-    // });
-    // bankAccount = await repo.create(bankAccount);
-
-    // const bankAccount = new BankAccountEntity({
-    //   id: 100,
-    //   accountNumber: "xxxxxxxx-43242134-98643134",
-    //   balance: 5000
-    // });
-    // const updated = await repo.update(bankAccount);
-
-    // const deleted = await repo.delete(7);
-
-    res.json({ 
-      status: 'ok',
-      msg: 'Working', 
-      test: process.env.TEST_AAAAAAA, 
-      port: process.env.PORT 
-    });
-  });
+  app.use('/api/users', userController.router);
+  app.use('/api/user-info', userInfoController.router);
+  app.use('/api/bank-accounts', bankAccountController.router);
+  app.use('/api/payments', paymentController.router);
 
   app.listen(process.env.PORT, () => console.log(`Server started on port ${process.env.PORT}`));
 }

@@ -1,13 +1,13 @@
-import express from 'express';
 import Database from '../Database';
-import controller from './Controller';
+import Controller from './Controller';
 import UserInfoEntity from '../entities/UserInfoEntity';
 import UserInfoRepository from '../repositories/UserInfoRepository';
 
-export default function userInfoController(db: Database): express.Router {
-  const repo = new UserInfoRepository(db);
+export default class UserInfoController extends Controller<UserInfoEntity> {
+  constructor(db: Database) {
+    super(db);
+    this.repo = new UserInfoRepository(db);
 
-  const router = controller<UserInfoEntity>(repo);
-
-  return router;
+    super.setRoutes();
+  }
 }
