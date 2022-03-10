@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import Database from './Database';
+import Auth from './services/Auth';
 import UserController from './controllers/UserController';
 import UserInfoController from './controllers/UserInfoController';
 import BankAccountController from './controllers/BankAccountController';
@@ -19,6 +20,9 @@ async function main(): Promise<void> {
     password  : process.env.DB_PASSWORD,
     database  : process.env.DB_DATABASE
   });
+
+  // Auth service
+  const auth = new Auth(process.env.AUTH_SECRET ?? 'secretkey');
 
   // ---------------------------------
   // -------------- API --------------
