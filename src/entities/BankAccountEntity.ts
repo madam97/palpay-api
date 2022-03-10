@@ -6,8 +6,7 @@ export default class BankAccountEntity extends Entity {
     super(data, {
       accountNumber: {
         type: 'string',
-        required: true,
-        default: ''
+        required: true
       },
       balance: {
         type: 'number',
