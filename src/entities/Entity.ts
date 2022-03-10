@@ -3,9 +3,10 @@ import IObject from '../interfaces/IObject';
 export default abstract class Entity {
   [index: string]: any;
 
-  readonly NAME: string;
+  protected NAME: string;
   protected propertyConfig: IObject;
   private propertyTypes: string[] = ['number','string','boolean'];
+  public id: any;
 
   constructor(data: IObject, propertyConfig: IObject) {
     this.NAME = new.target.name.replace(/Entity$/i, '');
