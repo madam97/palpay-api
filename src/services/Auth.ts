@@ -3,10 +3,12 @@ import IAuthPayload from '../interfaces/IAuthPayload';
 
 export default class Auth {
   private SECRET: string;
+  readonly BCRYPT_SALT_ROUNDS: number;
   private config: object;
 
-  constructor(SECRET: string, config: object = {}) {
+  constructor(SECRET: string, BCRYPT_SALT_ROUNDS: number, config: object = {}) {
     this.SECRET = SECRET;
+    this.BCRYPT_SALT_ROUNDS = BCRYPT_SALT_ROUNDS;
     this.config = config;
   }
 
