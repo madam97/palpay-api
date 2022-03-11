@@ -10,4 +10,9 @@ export default class UserRepository extends Repository<UserEntity> {
   public getEntity(data: object): UserEntity {
     return new UserEntity(data);
   }
+
+  public async findByUsername(username: string): Promise<UserEntity> {
+    const result = await this.db.selectOne(`${this.NAME}/selectOneByUsername`, username);
+    return this.getEntity(result);
+  }
 }

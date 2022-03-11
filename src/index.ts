@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import Database from './Database';
 import Auth from './services/Auth';
+import AuthController from './controllers/AuthController';
 import UserController from './controllers/UserController';
 import UserInfoController from './controllers/UserInfoController';
 import BankAccountController from './controllers/BankAccountController';
@@ -22,7 +23,10 @@ async function main(): Promise<void> {
   });
 
   // Auth service
-  const auth = new Auth(process.env.AUTH_SECRET ?? 'secretkey');
+  const auth = new Auth(
+    process.env.AUTH_SECRET ?? 'secretkey', 
+    process.env.AUTH_BCRYPT_SALT_ROUNDS ? parseInt(process.env.AUTH_BCRYPT_SALT_ROUNDS) : 10
+  );
 
   // ---------------------------------
   // -------------- API --------------
@@ -34,11 +38,13 @@ async function main(): Promise<void> {
   app.use(express.json());
 
   // Endpoints
+  const authController = new AuthController(db, auth);
   const userController = new UserController(db, auth);
   const userInfoController = new UserInfoController(db, auth);
   const bankAccountController = new BankAccountController(db, auth);
   const paymentController = new PaymentController(db, auth);
 
+  app.use('/api/auth', authController.router);
   app.use('/api/users', userController.router);
   app.use('/api/user-info', userInfoController.router);
   app.use('/api/bank-accounts', bankAccountController.router);
