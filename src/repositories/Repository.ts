@@ -2,6 +2,8 @@ import Database from '../Database';
 import Entity from '../entities/Entity';
 
 export default abstract class Repository<T extends Entity> {
+  [index: string]: any;
+  
   protected NAME: string;
   protected db: Database;
   protected entityName: string;
