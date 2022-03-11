@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import IAuthPayload from '../interfaces/IAuthPayload';
 
 export default class Auth {
   private SECRET: string;
@@ -9,11 +10,11 @@ export default class Auth {
     this.config = config;
   }
 
-  public login(payload: object): string {
+  public login(payload: IAuthPayload): string {
     return jwt.sign(payload, this.SECRET, this.config);
   }
 
-  public verifyToken(authHeader: string): string | jwt.JwtPayload {
+  public verifyToken(authHeader: string): IAuthPayload {
     const token = authHeader.split(' ')[1];
 
     if (!token) {
@@ -22,6 +23,8 @@ export default class Auth {
 
     const payload = jwt.verify(token, this.SECRET);
 
-    return payload;
+    return { 
+      user: typeof payload === 'string' ? {} : payload.user
+    };
   }
 }
