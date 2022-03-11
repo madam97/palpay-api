@@ -34,10 +34,10 @@ async function main(): Promise<void> {
   app.use(express.json());
 
   // Endpoints
-  const userController = new UserController(db);
-  const userInfoController = new UserInfoController(db);
-  const bankAccountController = new BankAccountController(db);
-  const paymentController = new PaymentController(db);
+  const userController = new UserController(db, auth);
+  const userInfoController = new UserInfoController(db, auth);
+  const bankAccountController = new BankAccountController(db, auth);
+  const paymentController = new PaymentController(db, auth);
 
   app.use('/api/users', userController.router);
   app.use('/api/user-info', userInfoController.router);
