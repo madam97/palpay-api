@@ -26,7 +26,7 @@ export default class Controller<T extends Entity> {
         throw new Error('authorization header is missing');
       }
 
-      const payload = { user: { id: 1, name: 'asd', role: 'guest' } }; // this.auth.verifyToken(req.headers['authorization']);
+      const payload = this.auth.verifyToken(req.headers['authorization']);
 
       let neededRole = this.getRoute(req.method, req.route.path).role;
       if (neededRole && neededRole !== payload.user.role) {
