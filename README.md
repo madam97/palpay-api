@@ -33,6 +33,7 @@ user_info_id FK - user_info.id
 bank_account_id FK - bank_accounts.id
 username UNIQUE varchar(255)
 password varchar(255)
+role varchar(8) default='user'
 
 user_info
 -----

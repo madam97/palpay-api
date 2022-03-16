@@ -5,12 +5,16 @@ import Auth from '../services/Auth';
 import Controller from './Controller';
 import UserEntity from '../entities/UserEntity';
 import UserRepository from '../repositories/UserRepository';
+import UserInfoRepository from '../repositories/UserInfoRepository';
 import TAuthPayload from '../interfaces/IAuthPayload';
 
-export default class UserController extends Controller<UserEntity> {
+export default class AuthController extends Controller<UserEntity> {
+  private repoInfo: UserInfoRepository;
+
   constructor(db: Database, auth: Auth) {
     super(db, auth);
     this.repo = new UserRepository(db);
+    this.repoInfo = new UserInfoRepository(db);
 
     super.setRoutes([
       {
@@ -47,9 +51,15 @@ export default class UserController extends Controller<UserEntity> {
         throw new Error('password is invalid');
       }
 
+      const userInfo = await this.repoInfo.findOne(user.id);
+
       // Get token
       const payload: TAuthPayload = {
-        user: { id: 1, name: 'asd', role: 'user' }
+        user: { 
+          id: user.id, 
+          name: userInfo.name ? userInfo.name : user.username, 
+          role: user.role
+        }
       };
       const token = this.auth.login(payload);
 

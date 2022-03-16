@@ -19,6 +19,10 @@ export default class UserEntity extends Entity {
       password: {
         type: 'string',
         required: true
+      },
+      role: {
+        type: 'string',
+        default: 'user'
       }
     });
   }
