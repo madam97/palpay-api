@@ -51,7 +51,7 @@ export default class AuthController extends Controller<UserEntity> {
         throw new Error('password is invalid');
       }
 
-      const userInfo = await this.repoInfo.findOne(user.id);
+      const userInfo = await this.repoInfo.findOne(user.userInfoId);
 
       // Get token
       const payload: TAuthPayload = {
