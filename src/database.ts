@@ -2,19 +2,22 @@ import mysql from 'mysql2/promise';
 import fs from 'fs';
 import path from 'path';
 import pluralize from 'pluralize';
+import config from './config';
 import { toSnakeCase, toCamelCaseObject } from './functions';
 import IObject from './interfaces/IObject';
 
-export default class Database {
-  private db: mysql.Connection;
+class Database {
+  private db: mysql.Pool;
+  private poolOptions: mysql.PoolOptions;
   private tablePrefix: string;
 
-  constructor(tablePrefix?: string) {
+  constructor(poolOptions: mysql.PoolOptions, tablePrefix?: string) {
+    this.poolOptions = poolOptions;
     this.tablePrefix = tablePrefix ? tablePrefix : '';
   }
 
-  public async connect(config: any) {
-    this.db = await mysql.createConnection(config);
+  public async connect() {
+    this.db = await mysql.createPool(this.poolOptions);
 
     console.log('MySQL connected...');
   }
@@ -23,7 +26,7 @@ export default class Database {
     return mysql.escape(value);
   }
 
-  public async select(action: string, values: any[] = []): Promise<object[]> {
+  public async select(action: string, values: any[] = []): Promise<IObject[]> {
     this.validateAction(action, 'select');
 
     const result = await this.exec(action, values);
@@ -32,15 +35,17 @@ export default class Database {
       throw Error(`Database error: ${action} query result is not an array`);
     }
 
-    const res: object[] = [];
-    result.map((row: object) => {
-      res.push( toCamelCaseObject(row) );
-    });
+    // const res: object[] = [];
+    // result.map((row: object) => {
+    //   res.push( toCamelCaseObject(row) );
+    // });
 
-    return res;
+    // return res;
+
+    return result;
   }
 
-  public async selectOne(action: string, values: any): Promise<object> {
+  public async selectOne(action: string, values: any): Promise<IObject> {
     this.validateAction(action, 'select');
 
     const result = await this.exec(action, !Array.isArray(values) ? [values] : values);
@@ -51,7 +56,9 @@ export default class Database {
       throw Error(`Database error: ${action} query result size is not 1`);
     }
 
-    return toCamelCaseObject(result[0]);
+    // return toCamelCaseObject(result[0]);
+
+    return result[0];
   }
 
   public async insert(action: string, values: any[]): Promise<number> {
@@ -90,7 +97,11 @@ export default class Database {
     return true;
   }
 
-  private async exec(action: string, values: any[]): Promise<object | object[] | IObject> {
+  private async exec(action: string, values: any[]): Promise<IObject | IObject[]> {
+    if (!this.db) {
+      await this.connect();
+    }
+
     const entity = action.replace(/\/.*$/, '');
     const fileName = action.replace(/^.*?\//, '');
 
@@ -138,3 +149,15 @@ export default class Database {
   //   return values;
   // }
 }
+
+export default new Database(
+  {
+    host            : config.DB_HOST,
+    port            : config.DB_PORT ? parseInt(config.DB_PORT) : undefined,
+    user            : config.DB_USER,
+    password        : config.DB_PASSWORD,
+    database        : config.DB_DATABASE,
+    connectionLimit : config.DB_CONNECTION_LIMIT ? parseInt(config.DB_CONNECTION_LIMIT) : 10
+  },
+  config.DB_TABLE_PREFIX
+);
