@@ -8,9 +8,13 @@ async function main(): Promise<void> {
   // Init middleware
   app.use(express.json());
 
-  app.get('/', (req,res) => {
+  app.get('/', async (req,res) => {
+    const user = await userModel.findOne(1);
+
     res.json({
-      user: userModel.findOne(1)
+      object: userModel.toObject(user),
+      array: userModel.toArray(user),
+      arrayNoId: userModel.toArray(user, true)
     });
   });
   
