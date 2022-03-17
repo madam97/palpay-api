@@ -20,20 +20,36 @@ export default class Controller<T extends Entity> {
     this.router = express.Router();
   }
 
-  protected verifyToken(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  protected verifyRoute(req: express.Request, res: express.Response, next: express.NextFunction): void {
     try {
       if (!req.headers['authorization']) {
         throw new Error('authorization header is missing');
       }
 
       const payload = this.auth.verifyToken(req.headers['authorization']);
+      const route = this.getRoute(req.method, req.route.path);
 
-      let neededRole = this.getRoute(req.method, req.route.path).role;
-      if (neededRole && neededRole !== payload.user.role) {
-        throw new Error(`logged user do not have ${neededRole} role`);
-      }
+      this.auth.verifyRole(route.role, payload.user.role);
 
+      req.route = route;
       req.user = payload.user;
+
+      next();
+    } catch (err) {
+      res.status(403).json({
+        msg: 'Forbidden',
+        log: `Auth error: ${err instanceof Error ? err.message : 'unknown error'}`
+      })
+    }
+  }
+
+  protected verifyUserId(req: express.Request, res: express.Response, next: express.NextFunction): void {
+    try {
+      if (!req.user) {
+        throw new Error('user has to login');
+      } else if (req.user.role !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        throw new Error('logged user\'s id and id in path are different');
+      }
 
       next();
     } catch (err) {
@@ -164,7 +180,7 @@ export default class Controller<T extends Entity> {
         },
         {
           method: 'POST',
-          path: '/',
+          path: '/'
         },
         {
           method: 'PATCH',
@@ -198,13 +214,21 @@ export default class Controller<T extends Entity> {
       }
     }
 
+    const handlers: express.RequestHandler[] = [];
     if (route.role) {
+      handlers.push( this.verifyRoute.bind(this) );
+    }
+    if (route.verifyUserId) {
+      handlers.push( this.verifyUserId.bind(this) );
+    }
+
+    if (handlers.length > 0) {
       switch (route.method) {
-        case 'GET':     this.router.get(route.path, this.verifyToken.bind(this), route.func); break;
-        case 'POST':    this.router.post(route.path, this.verifyToken.bind(this), route.func); break;
-        case 'PUT':     this.router.put(route.path, this.verifyToken.bind(this), route.func); break;
-        case 'PATCH':   this.router.patch(route.path, this.verifyToken.bind(this), route.func); break;
-        case 'DELETE':  this.router.delete(route.path, this.verifyToken.bind(this), route.func); break;
+        case 'GET':     this.router.get(route.path, ...handlers, route.func); break;
+        case 'POST':    this.router.post(route.path, ...handlers, route.func); break;
+        case 'PUT':     this.router.put(route.path, ...handlers, route.func); break;
+        case 'PATCH':   this.router.patch(route.path, ...handlers, route.func); break;
+        case 'DELETE':  this.router.delete(route.path, ...handlers, route.func); break;
       }
     } else {
       switch (route.method) {

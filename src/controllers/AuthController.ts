@@ -44,14 +44,14 @@ export default class AuthController extends Controller<UserEntity> {
       }
 
       // Get user
-      const user = await this.repo.findByUsername(req.body.username);
+      const user = await this.repo.findOneByUsername(req.body.username);
 
       // Password check
       if (! await bcrypt.compare(req.body.password, user.password) ) {
         throw new Error('password is invalid');
       }
 
-      const userInfo = await this.repoInfo.findOne(user.userInfoId);
+      const userInfo = await this.repoInfo.findOneByUserId(user.id);
 
       // Get token
       const payload: TAuthPayload = {

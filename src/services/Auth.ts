@@ -29,4 +29,10 @@ export default class Auth {
       user: typeof payload === 'string' ? {} : payload.user
     };
   }
+
+  public verifyRole(neededRole: string | undefined, userRole: string | undefined): void {
+    if (neededRole && neededRole !== 'guest' && userRole !== 'admin' && neededRole !== userRole) {
+      throw new Error(`logged user do not have ${neededRole} role`);
+    }
+  }
 }

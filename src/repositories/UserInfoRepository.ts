@@ -10,4 +10,9 @@ export default class UserInfoRepository extends Repository<UserInfoEntity> {
   public getEntity(data: object): UserInfoEntity {
     return new UserInfoEntity(data);
   }
+
+  public async findOneByUserId(userId: number): Promise<UserInfoEntity> {
+    const result = await this.db.selectOne(`${this.NAME}/selectOneByUserId`, userId);
+    return this.getEntity(result);
+  }
 }

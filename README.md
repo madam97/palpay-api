@@ -17,27 +17,27 @@
 | POST    | /auth/logout                        | logouts the user |
 | POST    | /auth/refresh                       | refresh the logged user's token |
 | **User endpoints** |
-| GET     | /users/{$id}                        | gets the user's info and bank account data |
+| GET     | /users/{$id}/user-info              | gets the user's info |
+| PUT     | /users/{$id}/user-info              | updates the user's info |
+| GET     | /users/{$id}/bank-account           | gets the user's bank account data |
 | GET     | /users/{$id}/partners               | gets the user's partners' data that is nessesary for sending payment |
-| PATCH   | /users/{$id}/user_info              | updates user's info data |
 | **Bank account endpoints** |
-| GET     | /bank_account/{$id}/payments        | gets the payments of the given bank account |
-| POST    | /bank_account/{$id}/payments        | create a new payment of the given bank account |
+| GET     | /bank-account/{$id}/payments        | gets the payments of the given bank account |
+| POST    | /bank-account/{$id}/payments        | create a new payment of the given bank account |
 
 ## Database source for QuickDBD website
 
 users
 -----
 id PK int
-user_info_id FK - user_info.id
-bank_account_id FK - bank_accounts.id
 username UNIQUE varchar(255)
 password varchar(255)
 role varchar(8) default='user'
 
-user_info
+user_infos
 -----
 id PK int
+user_id int FK - users.id
 name varchar(255)
 address text
 telephone varchar(255)
@@ -46,6 +46,7 @@ email varchar(255)
 bank_accounts
 -----
 id PK int
+user_id int FK - users.id
 account_number UNIQUE varchar(26)
 balance int=0
 
