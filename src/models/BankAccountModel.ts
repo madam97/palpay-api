@@ -10,11 +10,25 @@ export interface BankAccount {
 
 class BankAccountModel extends Model<BankAccount> {
 
-  protected formatRow(row: IObject): BankAccount {
+  constructor() {
+    super({
+      userId: {
+        required: true
+      },
+      accountNumber: {
+        required: true
+      },
+      balance: {
+        required: true
+      }
+    });
+  }
+
+  public format(data: IObject): BankAccount {
     return {
-      id: row.id,
-      accountNumber: row.account_number,
-      balance: row.balance
+      id: data.id,
+      accountNumber: data.account_number ? data.account_number : data.accountNumber,
+      balance: data.balance
     };
   }
 

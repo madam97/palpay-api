@@ -1,6 +1,6 @@
 import express from 'express';
 import config from './config';
-import { userModel } from './models/UserModel';
+import { userInfoRouter } from './controllers/UserInfoController';
 
 async function main(): Promise<void> {
   const app = express();
@@ -8,15 +8,8 @@ async function main(): Promise<void> {
   // Init middleware
   app.use(express.json());
 
-  app.get('/', async (req,res) => {
-    const user = await userModel.findOne(1);
-
-    res.json({
-      object: userModel.toObject(user),
-      array: userModel.toArray(user),
-      arrayNoId: userModel.toArray(user, true)
-    });
-  });
+  // Routes
+  app.use('/api/user-info', userInfoRouter);
   
   app.listen(config.PORT, () => console.log(`Server started on port ${config.PORT}`));
 }
