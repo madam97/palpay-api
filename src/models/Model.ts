@@ -1,5 +1,6 @@
 import db from '../database';
 import IObject from '../interfaces/IObject';
+import TMethod from '../types/TMethod';
 
 interface Entity {
   id: number
@@ -10,19 +11,51 @@ interface Entity {
  */
 export default abstract class Model<T extends Entity> {
   protected NAME: string;
+  protected props: IObject;
 
-  constructor() {
+  constructor(props: IObject) {
     this.NAME = new.target.name.replace(/Model$/i, '');
+
+    this.setProps(props);
+  }
+
+  /**
+   * Sets the config of entity's properties
+   * @param props 
+   */
+  private setProps(props: IObject): void {
+    this.props = {
+      id: {
+        required: true,
+        id: true,
+      },
+      ...props
+    }
   }
 
 
   /// TRANSFORM METHODS
 
   /**
-   * Transforms a row of a query result into an entity
-   * @param row 
+   * Transforms the given data into an entity
+   * @param data 
    */
-  protected abstract formatRow(row: IObject): T;
+  protected abstract format(data: IObject): T;
+  
+  /**
+   * Transforms the given data array into array of entities
+   * @param dataArray
+   * @returns 
+   */
+  public formatArray(dataArray: IObject[]): T[] {
+    const entities: T[] = [];
+
+    dataArray.map(data => {
+      entities.push( this.format(data) )
+    });
+
+    return entities;
+  }
 
   /**
    * Transforms the given entity into an array
@@ -31,13 +64,23 @@ export default abstract class Model<T extends Entity> {
    * @returns 
    */
   public toArray(entity: T, noId: boolean = false): any[] {
-    const data: IObject = { ...entity };
+    const entityObject: IObject = { ...entity };
+    const data: any[] = [];
+    let id: number = 0;
 
-    if (noId && data.id) {
-      delete data.id;
+    for (const [key, prop] of Object.entries(this.props)) {
+      if (prop.id) {
+        id = entityObject[key];
+      } else {
+        data.push(entityObject[key]);
+      }
     }
 
-    return Object.values({ ...data });
+    if (!noId && id) {
+      data.push(id);
+    }
+
+    return data;
   }
 
   /**
@@ -63,44 +106,53 @@ export default abstract class Model<T extends Entity> {
 
     return data;
   }
-  
+
   /**
-   * Transforms multiple row of query result into array of entities
-   * @param result 
-   * @returns 
+   * Validates the given entity data based on which method is been used
+   * @param entity 
+   * @param method 
    */
-  protected formatResult(result: IObject[]): T[] {
-    const entities: T[] = [];
+  public validate(entity: T, method: TMethod) {
+    const data: IObject = { ...entity };
 
-    result.map(row => {
-      entities.push( this.formatRow(row) )
-    });
-
-    return entities;
+    for (const [key, prop] of Object.entries(this.props)) {
+      // id required
+      if ((method === 'PUT' || method === 'PATCH') && prop.id && !data[key]) {
+        throw new Error(`ID is missing ID in ${this.NAME} entity`);
+      }
+      // required
+      else if (!prop.id && prop.required && !data[key]) {
+        throw new Error(`'${key}' is missing in ${this.NAME} entity`);
+      }
+    }
   }
 
 
   /// OPERATION METHODS
   
   public async find(): Promise<T[]> {
-    return this.formatResult( await db.select(`${this.NAME}/select`) );
+    return this.formatArray( await db.select(`${this.NAME}/select`) );
   }
 
   public async findOne(id: number): Promise<T> {
-    return this.formatRow( await db.selectOne(`${this.NAME}/selectOne`, id) );
+    return this.format( await db.selectOne(`${this.NAME}/selectOne`, id) );
   }
 
   public async findOneByUserId(id: number): Promise<T> {
-    return this.formatRow( await db.selectOne(`${this.NAME}/selectOneByUserId`, id) );
+    return this.format( await db.selectOne(`${this.NAME}/selectOneByUserId`, id) );
   }
 
   public async create(entity: T): Promise<T> {
+    this.validate(entity, 'POST');
+
     entity.id = await db.insert(`${this.NAME}/insert`, this.toArray(entity, true));
 
     return entity;
   }
 
   public async update(entity: T): Promise<boolean> {
+    this.validate(entity, 'PUT');
+
     return await db.update(`${this.NAME}/update`, this.toArray(entity));
   }
 

@@ -10,12 +10,26 @@ export interface User {
 
 class UserModel extends Model<User> {
 
-  protected formatRow(row: IObject): User {
+  constructor() {
+    super({
+      username: {
+        required: true
+      },
+      password: {
+        required: true
+      },
+      role: {
+        required: true
+      }
+    });
+  }
+
+  public format(data: IObject): User {
     return {
-      id: row.id,
-      username: row.username,
-      password: row.password,
-      role: row.role
+      id: data.id,
+      username: data.username, 
+      password: data.password,
+      role: data.role
     };
   }
 

@@ -13,14 +13,34 @@ export interface UserInfo {
 
 class UserInfoModel extends Model<UserInfo> {
 
-  protected formatRow(row: IObject): UserInfo {
+  constructor() {
+    super({
+      userId: {
+        required: true
+      },
+      name: {
+        required: true
+      },
+      address: {
+        required: true
+      },
+      telephone: {
+        required: true
+      },
+      email: {
+        required: true
+      }
+    });
+  }
+
+  public format(data: IObject): UserInfo {
     return {
-      id: row.id,
-      userId: row.user_id,
-      name: row.name,
-      address: row.address,
-      telephone: row.telephone,
-      email: row.email
+      id: data.id,
+      userId: data.user_id ? data.user_id : data.userId,
+      name: data.name,
+      address: data.address,
+      telephone: data.telephone,
+      email: data.email
     };
   }
 
