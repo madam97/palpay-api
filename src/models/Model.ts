@@ -2,14 +2,14 @@ import db from '../database';
 import IObject from '../interfaces/IObject';
 import TMethod from '../types/TMethod';
 
-interface Entity {
+export interface Entity {
   id: number
 };
 
 /**
  * Base model, use it to create models of a data
  */
-export default abstract class Model<T extends Entity> {
+export abstract class Model<T extends Entity> {
   protected NAME: string;
   protected props: IObject;
 
@@ -40,7 +40,7 @@ export default abstract class Model<T extends Entity> {
    * Transforms the given data into an entity
    * @param data 
    */
-  protected abstract format(data: IObject): T;
+  public abstract format(data: IObject): T;
   
   /**
    * Transforms the given data array into array of entities
