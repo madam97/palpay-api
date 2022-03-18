@@ -53,7 +53,7 @@ class Database {
     if (!Array.isArray(result)) {
       throw Error(`Database error: ${action} query result is not an array`);
     } else if (result.length !== 1) {
-      throw Error(`Database error: ${action} query result size is not 1`);
+      throw Error(`Database error: ${action} query was not successful`);
     }
 
     // return toCamelCaseObject(result[0]);
