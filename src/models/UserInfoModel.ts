@@ -1,4 +1,4 @@
-import Model from './Model';
+import { Model } from './Model';
 import IObject from '../interfaces/IObject';
 
 export interface UserInfo {
