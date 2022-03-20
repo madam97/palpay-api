@@ -1,11 +1,13 @@
 import { Model } from './Model';
+import db from '../database';
+import { TAuthRole } from '../services/Auth';
 import IObject from '../interfaces/IObject';
 
 export interface User {
   id: number,
   username: string,
   password: string,
-  role: string
+  role: TAuthRole
 };
 
 class UserModel extends Model<User> {
@@ -31,6 +33,10 @@ class UserModel extends Model<User> {
       password: data.password,
       role: data.role
     };
+  }
+
+  public async findOneByUsername(username: string): Promise<User> {
+    return this.format( await db.selectOne(`${this.NAME}/selectOneByUsername`, username) );
   }
 
 }
