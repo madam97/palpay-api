@@ -57,7 +57,7 @@ export class Auth {
     };
 
     return accessToken ?
-      jwt.sign(payload, this.secret, { expiresIn: '15m' }) :
+      jwt.sign(payload, this.secret, { expiresIn: '1h' }) :
       jwt.sign(payload, this.refreshTokenSecret, { expiresIn: '1d' });
   }
 
