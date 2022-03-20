@@ -116,10 +116,10 @@ class Database {
     // values = this.formatExecValues(values);
 
     const rawSql = fs.readFileSync(useEntityFile ? entitySqlFile : commonSqlFile, 'utf8');
-    let sql = rawSql.replace('{PREFIX}', this.tablePrefix);
+    let sql = rawSql.replaceAll('{PREFIX}', this.tablePrefix);
     if (!useEntityFile) {
       const table = pluralize( toSnakeCase(entity) );
-      sql = sql.replace('{TABLE}', table);
+      sql = sql.replaceAll('{TABLE}', table);
     }
 
     const [result] = await this.db.execute(sql, values);
