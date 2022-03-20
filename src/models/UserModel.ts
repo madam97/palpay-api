@@ -39,6 +39,10 @@ class UserModel extends Model<User> {
       refreshToken: data.refreshToken
     };
   }
+  
+
+  
+  /// OPERATION METHODS
 
   public async findOneByUsername(username: string): Promise<User> {
     return this.format( await db.selectOne(`${this.NAME}/selectOneByUsername`, username) );

@@ -36,7 +36,7 @@ class UserInfoModel extends Model<UserInfo> {
   public format(data: IObject): UserInfo {
     return {
       id: data.id,
-      userId: data.user_id ? data.user_id : data.userId,
+      userId: data.user_id ?? data.userId,
       name: data.name,
       address: data.address,
       telephone: data.telephone,
