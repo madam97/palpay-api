@@ -6,6 +6,7 @@ import TMethod from '../types/TMethod';
 export interface Route {
   method: TMethod,
   path: string,
+  params?: string[],
   role?: TAuthRole,
   verifyUserId?: boolean,
   func?: Function
@@ -98,6 +99,15 @@ export class Controller<T extends Entity> {
    * @returns 
    */
   private formatRoute(route: Route): Route {
+    if (!route.params) {
+      route.params = [];
+      const params = route.path.match(/:.*?(\/|\?|$)/g);
+
+      if (params) {
+        params.map(param => route.params?.push( param.replaceAll(/:|\//g, '') ));
+      }
+    }
+
     if (!route.role) {
       route.role = route.verifyUserId ? 'user' : 'guest';
     }
@@ -184,8 +194,8 @@ export class Controller<T extends Entity> {
       }
 
       const args = [];
-      if (req.params.id) {
-        args.push( parseInt(req.params.id) ); 
+      if (route.params) {
+        route.params.map(param => args.push( parseInt(req.params[param]) ));
       }
       if (req.body) {
         args.push(req.body);
@@ -201,25 +211,19 @@ export class Controller<T extends Entity> {
 
   // GET /
   protected async get(): Promise<object[]> {
-    const entities = await this.model.find();
-
-    return this.model.toObjectArray(entities);
+    return await this.model.find();
   }
 
   // GET /:id
   protected async getOne(id: number): Promise<object> {
-    const entity = await this.model.findOne(id);
-
-    return this.model.toObject(entity);
+    return await this.model.findOne(id);
   }
 
   // POST /
   protected async post(body: object): Promise<object> {
     const entity = this.model.format(body);
 
-    const newEntity = await this.model.create(entity);
-
-    return this.model.toObject(newEntity);
+    return await this.model.create(entity);
   }
 
   // PUT /:id
@@ -228,7 +232,7 @@ export class Controller<T extends Entity> {
 
     await this.model.update(entity);
 
-    return this.model.toObject(entity);
+    return entity;
   }
 
   // PATCH /:id
@@ -238,7 +242,7 @@ export class Controller<T extends Entity> {
 
     await this.model.update(newEntity);
 
-    return this.model.toObject(newEntity);
+    return newEntity;
   }
 
   // DELETE /:id
@@ -247,7 +251,7 @@ export class Controller<T extends Entity> {
     
     await this.model.delete(id);
 
-    return this.model.toObject(entity);
+    return entity;
   }
 
 }
