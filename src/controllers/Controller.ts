@@ -1,11 +1,12 @@
 import express from 'express';
+import { auth, AuthRole } from '../services/Auth';
 import { Model, Entity } from '../models/Model';
 import TMethod from '../types/TMethod';
 
 export interface Route {
   method: TMethod,
   path: string,
-  role?: string,
+  role?: AuthRole,
   verifyUserId?: boolean,
   func?: Function
 };
@@ -54,9 +55,9 @@ export class Controller<T extends Entity> {
 
     // Handlers
     const handlers: express.RequestHandler[] = [];
-    // if (route.role) {
-    //   handlers.push( this.verifyRoute.bind(this) );
-    // }
+    if (route.role && route.role !== 'guest') {
+      handlers.push( this.verifyAuth.bind(this) );
+    }
     // if (route.verifyUserId) {
     //   handlers.push( this.verifyUserId.bind(this) );
     // }
@@ -98,6 +99,34 @@ export class Controller<T extends Entity> {
     }
 
     return route;
+  }
+
+
+
+  /// REQUEST HANDLERS
+
+  /**
+   * If the route has needed role, checks if user is logged in and has the needed role
+   * @param req 
+   * @param res 
+   * @param next 
+   */
+  protected verifyAuth(req: express.Request, res: express.Response, next: express.NextFunction): void {
+    try {
+      const payload = auth.verifyAuth(req.headers);
+      const route = this.getRoute(req.method, req.route.path);
+
+      auth.verifyRole(route.role, payload.user.role);
+
+      req.route = route;
+      req.user = payload.user;
+
+      next();
+    } catch (err) {
+      res.status(403).json({
+        msg: err instanceof Error ? err.message : 'unknown error'
+      });
+    }
   }
 
   
