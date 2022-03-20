@@ -16,10 +16,12 @@ export interface AuthPayload {
 
 export class Auth {
   private secret: string;
+  private refreshTokenSecret: string;
   readonly bcryptSaltRounds: number;
 
-  constructor(secret: string, bcryptSaltRounds: number) {
+  constructor(secret: string, refreshTokenSecret: string, bcryptSaltRounds: number) {
     this.secret = secret;
+    this.refreshTokenSecret = refreshTokenSecret;
     this.bcryptSaltRounds = bcryptSaltRounds;
   }
 
@@ -44,16 +46,39 @@ export class Auth {
   }
 
   /**
-   * Generates a JWT token using the given payload data
+   * Generates a JWT access or refresh token using the given payload data
    * @param user
+   * @param accessToken
    * @returns 
    */
-  public getToken(user: AuthUser): string {
+  public getToken(user: AuthUser, accessToken: boolean = true): string {
     const payload: AuthPayload = {
       user
     };
 
-    return jwt.sign(payload, this.secret);
+    return accessToken ?
+      jwt.sign(payload, this.secret, { expiresIn: '15m' }) :
+      jwt.sign(payload, this.refreshTokenSecret, { expiresIn: '1d' });
+  }
+
+  /**
+   * Verifies the given JWT access or refresh token and returns its payload
+   * @param token 
+   * @param accessToken 
+   * @returns 
+   */
+  public verifyToken(token: string, accessToken: boolean = true): AuthPayload {
+    const payload = accessToken ?
+      jwt.verify(token, this.secret) :
+      jwt.verify(token, this.refreshTokenSecret);
+
+    if (typeof payload === 'string' || !payload.user) {
+      throw new Error('token payload is invalid');
+    }
+
+    return { 
+      user: payload.user
+    };
   }
 
   /**
@@ -73,11 +98,7 @@ export class Auth {
       throw new Error('authorization header is invalid');
     }
 
-    const payload = jwt.verify(token, this.secret);
-
-    return { 
-      user: typeof payload === 'string' ? {} : payload.user
-    };
+    return this.verifyToken(token);
   }
 
   /**
@@ -94,5 +115,6 @@ export class Auth {
 
 export const auth = new Auth(
   process.env.AUTH_SECRET ?? 'secretkey', 
+  process.env.AUTH_REFRESH_SECRET ?? 'refreshtokensecretkey',
   process.env.AUTH_BCRYPT_SALT_ROUNDS ? parseInt(process.env.AUTH_BCRYPT_SALT_ROUNDS) : 10
 );

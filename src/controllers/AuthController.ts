@@ -1,7 +1,7 @@
 import { Controller } from './Controller';
 import { User, userModel } from '../models/UserModel';
 import { userInfoModel } from '../models/UserInfoModel';
-import { auth } from '../services/Auth';
+import { auth, AuthUser } from '../services/Auth';
 import IObject from '../interfaces/IObject';
 
 class AuthController extends Controller<User> {
@@ -15,19 +15,31 @@ class AuthController extends Controller<User> {
         path: '/login',
         func: this.login.bind(this)
       },
-      // {
-      //   method: 'POST',
-      //   path: '/logout',
-      //   role: 'user',
-      //   func: this.logout.bind(this)
-      // },
-      // {
-      //   method: 'POST',
-      //   path: '/refresh',
-      //   role: 'user',
-      //   func: this.refresh.bind(this)
-      // }
+      {
+        method: 'POST',
+        path: '/logout',
+        role: 'user',
+        func: this.logout.bind(this)
+      },
+      {
+        method: 'POST',
+        path: '/refresh',
+        role: 'user',
+        func: this.refresh.bind(this)
+      }
     ]);
+  }
+
+  private async getAuthUser(user: User): Promise<AuthUser> {
+    const userInfo = await userInfoModel.findOneByUserId(user.id);
+
+    const authUser: AuthUser = {
+      id: user.id, 
+      name: userInfo.name ?? user.username, 
+      role: user.role
+    };
+
+    return authUser;
   }
 
   private async login(body: IObject): Promise<object> {
@@ -39,27 +51,54 @@ class AuthController extends Controller<User> {
 
     auth.verifyPassword(body.password, user.password);
 
-    const userInfo = await userInfoModel.findOneByUserId(user.id);
+    const authUser = await this.getAuthUser(user);
 
-    const token = auth.getToken({
-      id: user.id, 
-      name: userInfo.name ?? user.username, 
-      role: user.role
-    });
+    const token = auth.getToken(authUser);
+    const refreshToken = auth.getToken(authUser, false);
+
+    user.refreshToken = refreshToken;
+
+    userModel.update(user);
 
     return {
       msg: 'login was successful',
-      token
+      token,
+      refreshToken
     };
   }
 
-  // private async logout(req: express.Request, res: express.Response): Promise<void> {
-    
-  // }
+  private async logout(body: IObject): Promise<object> {
+    const payload = auth.verifyToken(body.refreshToken, false);
 
-  // private async refresh(req: express.Request, res: express.Response): Promise<void> {
-    
-  // }
+    const user = await userModel.findOne(payload.user.id);
+
+    user.refreshToken = null;
+
+    userModel.update(user);
+
+    return {
+      msg: 'logout was successful'
+    };
+  }
+
+  private async refresh(body: IObject): Promise<object> {
+    if (!body.refreshToken) {
+      throw new Error('refresh token is required');
+    }
+
+    const payload = auth.verifyToken(body.refreshToken, false);
+
+    const user = await userModel.findOne(payload.user.id);
+ 
+    const authUser = await this.getAuthUser(user);
+
+    const token = auth.getToken(authUser);
+
+    return {
+      msg: 'access token refresh was successful',
+      token
+    };
+  }
 
 }
 
