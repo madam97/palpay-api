@@ -17,9 +17,15 @@ class Database {
   }
 
   public async connect() {
-    this.db = await mysql.createPool(this.poolOptions);
-
-    console.log('MySQL connected...');
+    try {
+      console.log('SQL start connection...');
+      
+      this.db = await mysql.createPool(this.poolOptions);
+  
+      console.log(`SQL connected to ${this.poolOptions.host}`);
+    } catch (err) {
+      throw new Error(`Database error: not able to connect - ${err instanceof Error ? err.message : 'unknown error'}`);
+    }
   }
 
   public escape(value: any): string {
