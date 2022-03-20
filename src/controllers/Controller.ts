@@ -1,12 +1,12 @@
 import express from 'express';
-import { auth, AuthRole } from '../services/Auth';
+import { auth, TAuthRole } from '../services/Auth';
 import { Model, Entity } from '../models/Model';
 import TMethod from '../types/TMethod';
 
 export interface Route {
   method: TMethod,
   path: string,
-  role?: AuthRole,
+  role?: TAuthRole,
   verifyUserId?: boolean,
   func?: Function
 };
@@ -41,26 +41,17 @@ export class Controller<T extends Entity> {
    */
   protected addRoute(route: Route): void {
     // Save route config
-    if (!route.func) {
-      switch (route.method) {
-        case 'GET':     route.func = route.path === '/:id' ? this.getOne.bind(this) : this.get.bind(this); break;
-        case 'POST':    route.func = this.post.bind(this); break;
-        case 'PUT':     route.func = this.put.bind(this); break;
-        case 'PATCH':   route.func = this.patch.bind(this); break;
-        case 'DELETE':  route.func = this.delete.bind(this); break;
-      }
-    }
-
+    route = this.formatRoute(route);
     this.routes.push(route);
 
     // Handlers
     const handlers: express.RequestHandler[] = [];
-    if (route.role && route.role !== 'guest') {
+    if (route.role !== 'guest') {
       handlers.push( this.verifyAuth.bind(this) );
     }
-    // if (route.verifyUserId) {
-    //   handlers.push( this.verifyUserId.bind(this) );
-    // }
+    if (route.verifyUserId) {
+      handlers.push( this.verifyUserId.bind(this) );
+    }
 
     // Endpoint run with handlers
     if (handlers.length > 0) {
@@ -101,12 +92,35 @@ export class Controller<T extends Entity> {
     return route;
   }
 
+  /**
+   * Sets the values of undefined properties of the given route which have a default value
+   * @param route 
+   * @returns 
+   */
+  private formatRoute(route: Route): Route {
+    if (!route.role) {
+      route.role = route.verifyUserId ? 'user' : 'guest';
+    }
+
+    if (!route.func) {
+      switch (route.method) {
+        case 'GET':     route.func = route.path === '/:id' ? this.getOne.bind(this) : this.get.bind(this); break;
+        case 'POST':    route.func = this.post.bind(this); break;
+        case 'PUT':     route.func = this.put.bind(this); break;
+        case 'PATCH':   route.func = this.patch.bind(this); break;
+        case 'DELETE':  route.func = this.delete.bind(this); break;
+      }
+    }
+
+    return route;
+  }
+
 
 
   /// REQUEST HANDLERS
 
   /**
-   * If the route has needed role, checks if user is logged in and has the needed role
+   * Checks if user is logged in and has the needed role
    * @param req 
    * @param res 
    * @param next 
@@ -126,6 +140,29 @@ export class Controller<T extends Entity> {
       res.status(403).json({
         msg: err instanceof Error ? err.message : 'unknown error'
       });
+    }
+  }
+
+  /**
+   * Checks if the logged in user's id is the same as the request's id parameter
+   * @param req 
+   * @param res 
+   * @param next 
+   */
+  protected verifyUserId(req: express.Request, res: express.Response, next: express.NextFunction): void {
+    try {
+      if (!req.user) {
+        throw new Error('user has to login');
+      } else if (req.user.role !== 'admin' && req.user.id !== parseInt(req.params.id)) {
+        throw new Error('logged user\'s id and id in path are different');
+      }
+
+      next();
+    } catch (err) {
+      res.status(403).json({
+        msg: 'Forbidden',
+        log: `Auth error: ${err instanceof Error ? err.message : 'unknown error'}`
+      })
     }
   }
 
