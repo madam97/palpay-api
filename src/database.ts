@@ -52,7 +52,7 @@ class Database {
 
     if (!Array.isArray(result)) {
       throw Error(`Database error: ${action} query result is not an array`);
-    } else if (result.length !== 1) {
+    } else if (result.length < 1) {
       throw Error(`Database error: ${action} query was not successful`);
     }
 
