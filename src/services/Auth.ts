@@ -1,38 +1,97 @@
 import jwt from 'jsonwebtoken';
-import IAuthPayload from '../interfaces/IAuthPayload';
+import bcrypt from 'bcrypt';
 
-export default class Auth {
-  private SECRET: string;
-  readonly BCRYPT_SALT_ROUNDS: number;
-  private config: object;
+export type AuthRole = 'guest' | 'user' | 'admin';
 
-  constructor(SECRET: string, BCRYPT_SALT_ROUNDS: number, config: object = {}) {
-    this.SECRET = SECRET;
-    this.BCRYPT_SALT_ROUNDS = BCRYPT_SALT_ROUNDS;
-    this.config = config;
+export interface AuthUser {
+  id: number,
+  name: string,
+  role?: AuthRole
+};
+
+export interface AuthPayload {
+  user: AuthUser
+};
+
+export class Auth {
+  private secret: string;
+  readonly bcryptSaltRounds: number;
+
+  constructor(secret: string, bcryptSaltRounds: number) {
+    this.secret = secret;
+    this.bcryptSaltRounds = bcryptSaltRounds;
   }
 
-  public login(payload: IAuthPayload): string {
-    return jwt.sign(payload, this.SECRET, this.config);
+  /**
+   * Generates the hash of the given password using Bcrypt
+   * @param password 
+   * @returns 
+   */
+  public async getHash(password: string): Promise<string> {
+    return await bcrypt.hash(password, this.bcryptSaltRounds); 
   }
 
-  public verifyToken(authHeader: string): IAuthPayload {
-    const token = authHeader.split(' ')[1];
+  /**
+   * Compares the given password and hash using Bcrypt
+   * @param password 
+   * @param hash 
+   */
+  public async verifyPassword(password: string, hash: string): Promise<void> {
+    if (! await bcrypt.compare(password, hash) ) {
+      throw new Error('password is invalid');
+    }
+  }
 
-    if (!token) {
+  /**
+   * Generates a JWT token using the given payload data
+   * @param user
+   * @returns 
+   */
+  public getToken(user: AuthUser): string {
+    const payload: AuthPayload = {
+      user
+    };
+
+    return jwt.sign(payload, this.secret);
+  }
+
+  /**
+   * Verifies the authorization header
+   * @param headers 
+   * @returns 
+   */
+  public verifyAuth(headers: object): AuthPayload {
+    if (!headers['authorization']) {
       throw new Error('authorization header is missing');
     }
 
-    const payload = jwt.verify(token, this.SECRET);
+    const authHeader = headers['authorization'];
+    const token = authHeader.split(' ')[1];
+
+    if (!token) {
+      throw new Error('authorization header is invalid');
+    }
+
+    const payload = jwt.verify(token, this.secret);
 
     return { 
       user: typeof payload === 'string' ? {} : payload.user
     };
   }
 
-  public verifyRole(neededRole: string | undefined, userRole: string | undefined): void {
-    if (neededRole && neededRole !== 'guest' && userRole !== 'admin' && neededRole !== userRole) {
+  /**
+   * Compares the given needed and user's role
+   * @param neededRole 
+   * @param role 
+   */
+  public verifyRole(neededRole: AuthRole | undefined, role: AuthRole | undefined): void {
+    if (neededRole && neededRole !== 'guest' && role !== 'admin' && neededRole !== role) {
       throw new Error(`logged user do not have ${neededRole} role`);
     }
   }
 }
+
+export const auth = new Auth(
+  process.env.AUTH_SECRET ?? 'secretkey', 
+  process.env.AUTH_BCRYPT_SALT_ROUNDS ? parseInt(process.env.AUTH_BCRYPT_SALT_ROUNDS) : 10
+);
