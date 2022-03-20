@@ -105,8 +105,8 @@ class Database {
     const entity = action.replace(/\/.*$/, '');
     const fileName = action.replace(/^.*?\//, '');
 
-    const entitySqlFile = path.join(__dirname, 'sql', action+'.sql');
-    const commonSqlFile = path.join(__dirname, 'sql', 'Common', fileName+'.sql');
+    const entitySqlFile = path.join(__dirname, '../sql', action+'.sql');
+    const commonSqlFile = path.join(__dirname, '../sql', 'Common', fileName+'.sql');
     const useEntityFile = fs.existsSync(entitySqlFile);
 
     if (!useEntityFile && !fs.existsSync(commonSqlFile)) {
