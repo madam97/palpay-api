@@ -7,7 +7,8 @@ export interface User {
   id: number,
   username: string,
   password: string,
-  role: TAuthRole
+  role: TAuthRole,
+  refreshToken?: string | null
 };
 
 class UserModel extends Model<User> {
@@ -22,6 +23,9 @@ class UserModel extends Model<User> {
       },
       role: {
         required: true
+      },
+      refreshToken: {
+        required: false
       }
     });
   }
@@ -31,7 +35,8 @@ class UserModel extends Model<User> {
       id: data.id,
       username: data.username, 
       password: data.password,
-      role: data.role
+      role: data.role,
+      refreshToken: data.refreshToken
     };
   }
 

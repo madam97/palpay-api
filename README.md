@@ -33,11 +33,12 @@ id PK int
 username UNIQUE varchar(255)
 password varchar(255)
 role varchar(8) default='user'
+refresh_token varchar(255) default=NULL
 
 user_infos
 -----
 id PK int
-user_id int FK - users.id
+user_id UNIQUE int FK - users.id
 name varchar(255)
 address text
 telephone varchar(255)
@@ -46,7 +47,7 @@ email varchar(255)
 bank_accounts
 -----
 id PK int
-user_id int FK - users.id
+user_id UNIQUE int FK - users.id
 account_number UNIQUE varchar(26)
 balance int=0
 
