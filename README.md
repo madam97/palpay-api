@@ -18,12 +18,15 @@
 | POST    | /auth/refresh                       | refresh the logged user's token |
 | **User endpoints** |
 | GET     | /users/{$id}/user-info              | gets the user's info |
-| PUT     | /users/{$id}/user-info              | updates the user's info |
+| PATCH   | /users/{$id}/user-info              | updates the user's info |
 | GET     | /users/{$id}/bank-account           | gets the user's bank account data |
-| GET     | /users/{$id}/partners               | gets the user's partners' data that is nessesary for sending payment |
+| GET     | /users/{$id}/partner               | gets the user's partners' data that is nessesary for sending payment |
+| POST    | /users/{$id}/partner               | create a new user and partner connection |
+| PATCH   | /users/{$id}/partner/{$partner_id} | updates the user and partner connection |
+| DELETE  | /users/{$id}/partner/{$partner_id} | deletes the user and partner connection |
 | **Bank account endpoints** |
-| GET     | /bank-account/{$id}/payments        | gets the payments of the given bank account |
-| POST    | /bank-account/{$id}/payments        | create a new payment of the given bank account |
+| GET     | /bank-account/{$id}/payment        | gets the payments of the given bank account |
+| POST    | /bank-account/{$id}/payment        | create a new payment of the given bank account |
 
 ## Database source for QuickDBD website
 
@@ -53,8 +56,10 @@ balance int=0
 
 user_partners
 -----
-user1_id FK - users.id
-user2_id FK - users.id
+id PK int
+user_id UNIQUE FK - users.id
+partner_user_id UNIQUE FK - users.id
+nickname varchar(32) default=NULL
 
 
 payments
