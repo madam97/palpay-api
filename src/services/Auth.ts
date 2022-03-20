@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import IObject from '../interfaces/IObject';
 
 export type AuthRole = 'guest' | 'user' | 'admin';
 
@@ -60,7 +61,7 @@ export class Auth {
    * @param headers 
    * @returns 
    */
-  public verifyAuth(headers: object): AuthPayload {
+  public verifyAuth(headers: IObject): AuthPayload {
     if (!headers['authorization']) {
       throw new Error('authorization header is missing');
     }
