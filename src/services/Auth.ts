@@ -2,12 +2,12 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import IObject from '../interfaces/IObject';
 
-export type AuthRole = 'guest' | 'user' | 'admin';
+export type TAuthRole = 'guest' | 'user' | 'admin';
 
 export interface AuthUser {
   id: number,
   name: string,
-  role?: AuthRole
+  role?: TAuthRole
 };
 
 export interface AuthPayload {
@@ -85,7 +85,7 @@ export class Auth {
    * @param neededRole 
    * @param role 
    */
-  public verifyRole(neededRole: AuthRole | undefined, role: AuthRole | undefined): void {
+  public verifyRole(neededRole: TAuthRole | undefined, role: TAuthRole | undefined): void {
     if (neededRole && neededRole !== 'guest' && role !== 'admin' && neededRole !== role) {
       throw new Error(`logged user do not have ${neededRole} role`);
     }
