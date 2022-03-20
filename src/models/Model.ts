@@ -50,9 +50,7 @@ export abstract class Model<T extends Entity> {
   public formatArray(dataArray: IObject[]): T[] {
     const entities: T[] = [];
 
-    dataArray.map(data => {
-      entities.push( this.format(data) )
-    });
+    dataArray.map(data => entities.push( this.format(data) ));
 
     return entities;
   }
@@ -84,27 +82,23 @@ export abstract class Model<T extends Entity> {
   }
 
   /**
-   * Transforms the given entity into an object; good for return entity in a HTTP response
-   * @param entity 
+   * Transforms the given data object into an array
+   * @param data
+   * @param noId If true, id will not be returned; good for insert query
    * @returns 
    */
-  public toObject(entity: T): object {
-    return { ...entity };
-  }
+  public toArraySimple(data: IObject, noId: boolean = false): any[] {
+    const id: number = data.id ?? 0;
 
-  /**
-   * Transforms the given array of entities into an array of objects; good for return entities in a HTTP response
-   * @param entity 
-   * @returns 
-   */
-  public toObjectArray(entities: T[]): object[] {
-    const data: object[] = [];
+    const dataWithNoId = { ...data }; 
+    delete dataWithNoId.id;
+    const dataArray: any[] = Object.values(dataWithNoId);
 
-    entities.map(entity => {
-      data.push({ ...entity });
-    });
+    if (!noId && id) {
+      dataArray.push(id);
+    }
 
-    return data;
+    return dataArray;
   }
 
   /**
@@ -138,8 +132,8 @@ export abstract class Model<T extends Entity> {
     return this.format( await db.selectOne(`${this.NAME}/selectOne`, id) );
   }
 
-  public async findOneByUserId(id: number): Promise<T> {
-    return this.format( await db.selectOne(`${this.NAME}/selectOneByUserId`, id) );
+  public async findOneByUserId(userId: number): Promise<T> {
+    return this.format( await db.selectOne(`${this.NAME}/selectOneByUserId`, userId) );
   }
 
   public async create(entity: T): Promise<T> {
