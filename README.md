@@ -38,7 +38,7 @@ password varchar(255)
 role varchar(8) default='user'
 refresh_token varchar(255) default=NULL
 
-user_infos
+user_info
 -----
 id PK int
 user_id UNIQUE int FK - users.id
