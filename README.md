@@ -20,13 +20,13 @@
 | GET     | /users/{$id}/user-info              | gets the user's info |
 | PATCH   | /users/{$id}/user-info              | updates the user's info |
 | GET     | /users/{$id}/bank-account           | gets the user's bank account data |
-| GET     | /users/{$id}/partner               | gets the user's partners' data that is nessesary for sending payment |
-| POST    | /users/{$id}/partner               | create a new user and partner connection |
-| PATCH   | /users/{$id}/partner/{$partner_id} | updates the user and partner connection |
-| DELETE  | /users/{$id}/partner/{$partner_id} | deletes the user and partner connection |
+| GET     | /users/{$id}/partner                | gets the user's partners' data that is nessesary for sending payment |
+| POST    | /users/{$id}/partner                | create a new user and partner connection |
+| PATCH   | /users/{$id}/partner/{$partner_id}  | updates the user and partner connection |
+| DELETE  | /users/{$id}/partner/{$partner_id}  | deletes the user and partner connection |
 | **Bank account endpoints** |
-| GET     | /bank-account/{$id}/payment        | gets the payments of the given bank account |
-| POST    | /bank-account/{$id}/payment        | create a new payment of the given bank account |
+| GET     | /bank-account/{$id}/payment         | gets the payments of the given bank account |
+| POST    | /bank-account/{$id}/payment         | create a new payment of the given bank account |
 
 ## Database source for QuickDBD website
 
@@ -68,5 +68,5 @@ id PK int
 from_bank_account_id FK - bank_accounts.id
 to_bank_account_id FK - bank_accounts.id
 amount int
-notice varchar(255)
+notice varchar(255) default=NULL
 created_at datetime default=NOW()
