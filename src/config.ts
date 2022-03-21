@@ -3,6 +3,10 @@ import { Options } from 'sequelize';
 import dotenv from 'dotenv';
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
+interface IAppConfig {
+  port            : number
+};
+
 interface IDbConfig {
   user            : string,
   password        : string,
@@ -15,6 +19,10 @@ interface IAuthConfig {
   secret            : string,
   refreshSecret     : string,
   bcryptSaltRounds  : number
+};
+
+export const appConfig: IAppConfig = {
+  port            : process.env.PORT ? parseInt(process.env.PORT) : 5000
 };
 
 export const dbConfig: IDbConfig = {
@@ -36,5 +44,3 @@ export const authConfig: IAuthConfig = {
   refreshSecret     : process.env.AUTH_REFRESH_SECRET ?? 'refreshtokensecretkey',
   bcryptSaltRounds  : process.env.AUTH_BCRYPT_SALT_ROUNDS ? parseInt(process.env.AUTH_BCRYPT_SALT_ROUNDS) : 10
 };
-
-export default process.env;
