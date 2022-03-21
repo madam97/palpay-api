@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { authConfig } from '../config';
 import IObject from '../interfaces/IObject';
 
 export type TAuthRole = 'guest' | 'user' | 'admin';
@@ -114,7 +115,7 @@ export class Auth {
 }
 
 export const auth = new Auth(
-  process.env.AUTH_SECRET ?? 'secretkey', 
-  process.env.AUTH_REFRESH_SECRET ?? 'refreshtokensecretkey',
-  process.env.AUTH_BCRYPT_SALT_ROUNDS ? parseInt(process.env.AUTH_BCRYPT_SALT_ROUNDS) : 10
+  authConfig.secret,
+  authConfig.refreshSecret,
+  authConfig.bcryptSaltRounds
 );
